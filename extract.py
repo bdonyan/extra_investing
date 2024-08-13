@@ -114,6 +114,80 @@ def extract_additional_info(url, symbol, name):
             print(f"Analysts Sentiment not available")
             info['Analysts Sentiment'] = None
 
+        # Extract the Upside value
+        try:
+            # Locate the Upside label first
+            upside_label = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, '//span[contains(text(), "Upside")]'))
+            )
+            
+            # Find the following sibling element that contains the upside value
+            # Here, we assume that the upside value is always located within a span or div following the Upside label
+            upside_value = upside_label.find_element(By.XPATH, './following::span[contains(text(), "%")]')
+
+            # Store the extracted Upside value in info
+            info['Upside'] = upside_value.text.strip()
+            print(f"Upside: {info['Upside']}")
+            
+        except Exception as e:
+            print(f"Failed to extract Upside: {e}")
+            info['Upside'] = None
+
+        try:
+            # Locate the ProTips label
+            protips_label = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, '//span[contains(text(), "ProTips")]'))
+            )
+            
+            # Find the container that follows the ProTips label
+            protips_text_container = protips_label.find_element(By.XPATH, '../../../following::div[1]')
+            
+            # Extract the text from the identified container
+            protips_text = protips_text_container.text.strip()
+            print(f"ProTips: {protips_text}")
+            
+            info['ProTips'] = protips_text
+
+        except Exception as e:
+            print(f"Failed to extract ProTips: {e}")
+            info['ProTips'] = None
+
+        # Extract 1-Year Change
+        try:
+            # Locate the "1-Year Change" label
+            one_year_change_label = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, '//span[contains(text(), "1-Year Change")]'))
+            )
+            
+            # Find the value following the "1-Year Change" label
+            one_year_change_value = one_year_change_label.find_element(By.XPATH, '../following-sibling::dd//span[@class="key-info_dd-numeric__ZQFIs"]').text.strip()
+            
+            # Print and store the value
+            print(f"1-Year Change: {one_year_change_value}")
+            info['1-Year Change'] = one_year_change_value
+
+        except Exception as e:
+            print(f"Failed to extract 1-Year Change: {e}")
+            info['1-Year Change'] = None
+
+        # Extract Market Cap
+        try:
+            # Locate the "Market Cap" label
+            market_cap_label = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, '//span[contains(text(), "Market Cap")]'))
+            )
+            
+            # Find the value following the "Market Cap" label
+            market_cap_value = market_cap_label.find_element(By.XPATH, '../following-sibling::dd//span[@class="key-info_dd-numeric__ZQFIs"]').text.strip()
+            
+            # Print and store the value
+            print(f"Market Cap: {market_cap_value}")
+            info['Market Cap'] = market_cap_value
+
+        except Exception as e:
+            print(f"Failed to extract Market Cap: {e}")
+            info['Market Cap'] = None
+
     except Exception as e:
         print(f"Failed to extract additional info from {url}: {e}")
 
@@ -123,6 +197,7 @@ if __name__ == "__main__":
     import pandas as pd
     df = pd.read_csv('company_links.csv')
     detailed_data = []
+    time.sleep(2)
 
     for _, row in df.iterrows():
         company_info = extract_additional_info(row['URL'], row['Symbol Name'], row['Company Name'])
