@@ -249,6 +249,34 @@ def extract_additional_info(url, symbol, name):
             print(f"Dividend Yield unavailable")
             info['Dividend Yield'] = None
 
+        try:
+            # Locate the 'Beta' section
+            beta_section = driver.find_element(By.XPATH, '//span[contains(text(), "Beta")]')
+
+            # Find the value element within the same parent <dd> tag
+            beta_value = beta_section.find_element(By.XPATH, '../..').find_element(By.XPATH, './/span[@class="key-info_dd-numeric__ZQFIs"]').text.strip()
+
+            print(f"Beta: {beta_value}")
+            info['Beta'] = beta_value
+
+        except Exception as e:
+            print(f"Beta unavailable")
+            info['Beta'] = None
+
+        try:
+            # Locate the 'Next Earnings Date' section
+            earnings_date_section = driver.find_element(By.XPATH, '//span[contains(text(), "Next Earnings Date")]')
+
+            # Find the <a> element that contains the earnings date
+            earnings_date_value = earnings_date_section.find_element(By.XPATH, '../..').find_element(By.XPATH, './/a').text.strip()
+
+            print(f"Next Earnings Date: {earnings_date_value}")
+            info['Next Earnings Date'] = earnings_date_value
+
+        except Exception as e:
+            print(f"Next Earnings Date not available")
+            info['Next Earnings Date'] = None
+
     except Exception as e:
         print(f"Failed to extract additional info from {url}: {e}")
 
