@@ -75,7 +75,7 @@ def extract_additional_info(url, symbol, name):
                 info['52 wk range start'] = None
                 info['52 wk range end'] = None
         except Exception as e:
-            print(f"Failed to extract 52 wk range: {e}")
+            print(f"52 week range unavailable")
             info['52 wk range start'] = None
             info['52 wk range end'] = None
 
@@ -84,7 +84,7 @@ def extract_additional_info(url, symbol, name):
             # First attempt: Common detailed view
             try:
                 # Locate the element containing the Technical Analysis header
-                tech_analysis_header = WebDriverWait(driver, 10).until(
+                tech_analysis_header = WebDriverWait(driver, 2).until(
                     EC.presence_of_element_located((By.XPATH, '//span[text()="Technical Analysis"]'))
                 )
                 # Locate the following element that contains the result
@@ -99,12 +99,12 @@ def extract_additional_info(url, symbol, name):
             print(f"Technical Analysis: {info['Technical Analysis']}")
             
         except Exception as e:
-            print(f"Failed to extract Technical Analysis: {e}")
+            print(f"Technical Analysis unavailable")
             info['Technical Analysis'] = None
         
         # Attempt to extract Analysts Sentiment, but handle cases where it might not exist
         try:
-            analysts_sentiment_header = WebDriverWait(driver, 5).until(
+            analysts_sentiment_header = WebDriverWait(driver, 2).until(
                 EC.presence_of_element_located((By.XPATH, '//span[text()="Analysts Sentiment"]'))
             )
             analysts_sentiment_result = analysts_sentiment_header.find_element(By.XPATH, '../following-sibling::div[contains(@class, "text-") and contains(@class, "font-bold")]')
@@ -117,7 +117,7 @@ def extract_additional_info(url, symbol, name):
         # Extract the Upside value
         try:
             # Locate the Upside label first
-            upside_label = WebDriverWait(driver, 10).until(
+            upside_label = WebDriverWait(driver, 2).until(
                 EC.presence_of_element_located((By.XPATH, '//span[contains(text(), "Upside")]'))
             )
             
@@ -130,12 +130,12 @@ def extract_additional_info(url, symbol, name):
             print(f"Upside: {info['Upside']}")
             
         except Exception as e:
-            print(f"Failed to extract Upside: {e}")
+            print(f"Upside unavailable")
             info['Upside'] = None
 
         try:
             # Locate the ProTips label
-            protips_label = WebDriverWait(driver, 10).until(
+            protips_label = WebDriverWait(driver, 2).until(
                 EC.presence_of_element_located((By.XPATH, '//span[contains(text(), "ProTips")]'))
             )
             
@@ -149,13 +149,13 @@ def extract_additional_info(url, symbol, name):
             info['ProTips'] = protips_text
 
         except Exception as e:
-            print(f"Failed to extract ProTips: {e}")
+            print(f"ProTips unavailable")
             info['ProTips'] = None
 
         # Extract 1-Year Change
         try:
             # Locate the "1-Year Change" label
-            one_year_change_label = WebDriverWait(driver, 10).until(
+            one_year_change_label = WebDriverWait(driver, 2).until(
                 EC.presence_of_element_located((By.XPATH, '//span[contains(text(), "1-Year Change")]'))
             )
             
@@ -167,13 +167,13 @@ def extract_additional_info(url, symbol, name):
             info['1-Year Change'] = one_year_change_value
 
         except Exception as e:
-            print(f"Failed to extract 1-Year Change: {e}")
+            print(f"1-Year Change unavailable")
             info['1-Year Change'] = None
 
         # Extract Market Cap
         try:
             # Locate the "Market Cap" label
-            market_cap_label = WebDriverWait(driver, 10).until(
+            market_cap_label = WebDriverWait(driver, 2).until(
                 EC.presence_of_element_located((By.XPATH, '//span[contains(text(), "Market Cap")]'))
             )
             
@@ -185,8 +185,69 @@ def extract_additional_info(url, symbol, name):
             info['Market Cap'] = market_cap_value
 
         except Exception as e:
-            print(f"Failed to extract Market Cap: {e}")
+            print(f"Market Cap unavailable")
             info['Market Cap'] = None
+
+        try:
+            # Locate the "P/E Ratio" label
+            pe_ratio_label = WebDriverWait(driver, 2).until(
+                EC.presence_of_element_located((By.XPATH, '//span[contains(text(), "P/E Ratio")]'))
+            )
+            
+            # Find the value following the "P/E Ratio" label
+            pe_ratio_value = pe_ratio_label.find_element(By.XPATH, '../following-sibling::dd//span[@class="key-info_dd-numeric__ZQFIs"]').text.strip()
+            
+            # Print and store the value
+            print(f"P/E Ratio: {pe_ratio_value}")
+            info['P/E Ratio'] = pe_ratio_value
+
+        except Exception as e:
+            print(f"P/E Ratio unavailable")
+            info['P/E Ratio'] = None
+        
+        try:
+            # Locate the "EPS" label
+            eps_label = WebDriverWait(driver, 2).until(
+                EC.presence_of_element_located((By.XPATH, '//span[contains(text(), "EPS")]'))
+            )
+            
+            # Find the value following the "EPS" label
+            eps_value = eps_label.find_element(By.XPATH, '../following-sibling::dd//span[@class="key-info_dd-numeric__ZQFIs"]').text.strip()
+            
+            # Print and store the value
+            print(f"EPS: {eps_value}")
+            info['EPS'] = eps_value
+
+        except Exception as e:
+            print(f"EPS unavailable")
+            info['EPS'] = None
+        
+        try:
+            # Locate the Dividend (Yield) section
+            try:
+                dividend_section = driver.find_element(By.XPATH, '//span[contains(text(), "Dividend (Yield)")]')
+                
+                # Find the <dd> element containing both the numeric value and the percentage
+                dividend_values = dividend_section.find_element(By.XPATH, '../..').find_elements(By.XPATH, './/span[@class="key-info_dd-numeric__ZQFIs"][1]/span')
+                
+                # Extract the numeric value 
+                dividend_numeric_value = dividend_values[4].text.strip()
+                
+            except Exception:
+                dividend_section = driver.find_element(By.XPATH, '//span[contains(text(), "Dividend Yield")]')
+
+                # Find the <dd> element containing both the numeric value and the percentage
+                dividend_values = dividend_section.find_element(By.XPATH, '../..').find_elements(By.XPATH, './/span[@class="key-info_dd-numeric__ZQFIs"][1]/span')
+                
+                # Extract the numeric value 
+                dividend_numeric_value = dividend_values[1].text.strip()
+
+            print(f"Dividend Yield: {dividend_numeric_value}%")
+            info['Dividend Yield'] = f"{dividend_numeric_value}%"
+
+        except Exception as e:
+            print(f"Dividend Yield unavailable")
+            info['Dividend Yield'] = None
 
     except Exception as e:
         print(f"Failed to extract additional info from {url}: {e}")
