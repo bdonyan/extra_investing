@@ -45,7 +45,8 @@ To set up the project locally, follow these steps:
 
 4. **Run the Script:**
    ```bash
-   python stock_scraper.py
+   python main.py
+   python extract.py
    ```
 
 ## Usage
